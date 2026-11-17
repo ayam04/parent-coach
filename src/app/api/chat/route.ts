@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
     const userMsg: ChatMessage = { role: "user", content: message, createdAt: now };
     const historyForModel = [...(convo.messages || []), userMsg].map((m) => ({ role: m.role, content: m.content }));
-    const reply = await generateCoachReply(historyForModel, message);
+    const reply = await generateCoachReply(historyForModel, message, sessionId);
 
     const assistantContent = JSON.stringify({
       concern_summary: reply.concern_summary,

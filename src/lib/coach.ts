@@ -46,18 +46,21 @@ function extractJson(text: string): any {
 export function heuristicCrisis(text: string): boolean {
   const t = text.toLowerCase();
   const patterns = [
-    /suicid/, /kill (my|him|her|them)?self/, /end (my|his|her) life/, /self[- ]?harm/,
-    /hurt (my|him|her|them)?self/, /want to die/, /don'?t want to live/, /mar jana/, /khudkushi/,
+    /suicid/, /kill (my|him|her|them|your)?self/, /end (my|his|her|their) life/, /self[- ]?harm/,
+    /hurt (my|him|her|them)?self/, /want to die/, /don'?t want to live/, /wanna die/, /mar jana/, /khudkushi/,
+    /hurt (my|the|a|his|her) (child|kid|son|daughter|baby|toddler)/, /kill (my|the|a|his|her) (child|kid|son|daughter|baby|toddler)/,
+    /harm (my|the|a|his|her) (child|kid|son|daughter|baby|toddler)/, /might hurt/, /afraid i (will|might) hurt/,
     /\babuse\b/, /abusing/, /molest/, /rape/, /sexual abuse/, /beating/, /beaten/, /hit(ting)? (my )?(child|kid|son|daughter|baby)/,
-    /choking/, /not breathing/, /unconscious/, /poison/, /overdose/, /bleeding heavily/, /emergency/, /immediate danger/,
-    /threaten.*kill/, /gun/, /knife/, /maar raha/, /maar rahi/, /zyadti/, /jan se maar/,
+    /choking/, /not breathing/, /unconscious/, /poison/, /overdose/, /bleeding heavily/, /emergency/, /immediate danger/, /in danger/,
+    /threaten.*kill/, /gun/, /knife/, /weapon/, /maar raha/, /maar rahi/, /zyadti/, /jan se maar/, /nuksan/,
   ];
   return patterns.some((p) => p.test(t));
 }
 
 export async function generateCoachReply(
   messages: { role: "user" | "assistant"; content: string }[],
-  latestUserText: string
+  latestUserText: string,
+  sessionId?: string
 ): Promise<CoachReply> {
   const apiKey = process.env.OPENCODE_API_KEY || process.env.OPENCODE_GO_API_KEY;
   const baseUrl = (process.env.OPENCODE_BASE_URL || "https://opencode.ai/zen/go/v1").replace(/\/$/, "");
@@ -109,12 +112,14 @@ export async function generateCoachReply(
   };
 
   try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + apiKey,
+    };
+    if (sessionId) headers["x-opencode-session"] = sessionId;
     const res = await fetch(baseUrl + "/chat/completions", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: "Bearer " + apiKey,
-      },
+      headers,
       body: JSON.stringify(body),
     });
     if (!res.ok) {
