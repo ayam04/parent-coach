@@ -16,12 +16,18 @@ type Limit = { max: number; windowMs: number };
 const IP_LIMIT: Limit = { max: 15, windowMs: 5 * 60 * 1000 };
 /** Per-conversation budget: 40 requests / 10 minutes. */
 const SESSION_LIMIT: Limit = { max: 40, windowMs: 10 * 60 * 1000 };
+/** Read budget: one cheap DB read per request, so it gets more headroom. */
+const READ_IP_LIMIT: Limit = { max: 60, windowMs: 5 * 60 * 1000 };
+const READ_SESSION_LIMIT: Limit = { max: 120, windowMs: 10 * 60 * 1000 };
+
 /** Hard cap on tracked keys so the module cannot grow without bound. */
 const MAX_TRACKED_KEYS = 10_000;
 
 /** Timestamps (ms) of allowed requests, oldest first. */
 const ipBuckets = new Map<string, number[]>();
 const sessionBuckets = new Map<string, number[]>();
+const readIpBuckets = new Map<string, number[]>();
+const readSessionBuckets = new Map<string, number[]>();
 
 /** Drops timestamps that have fallen out of the window. */
 function prune(bucket: number[], now: number, windowMs: number): number[] {
@@ -95,6 +101,20 @@ export function getClientIp(request: Request): string {
  * Consumes one request against the IP and (when supplied) session budgets.
  * Returns the first limit that would be exceeded.
  */
+export function checkReadRateLimit(input: { ip?: string | null; sessionId?: string | null }): RateLimitResult {
+  const now = Date.now();
+  const ip = input.ip ? input.ip.trim() : "";
+  const sessionId = input.sessionId ? input.sessionId.trim() : "";
+
+  const ipResult = hit(readIpBuckets, ip ? "ip:" + ip : "", READ_IP_LIMIT, now);
+  if (!ipResult.ok) return ipResult;
+
+  const sessionResult = hit(readSessionBuckets, sessionId ? "sid:" + sessionId : "", READ_SESSION_LIMIT, now);
+  if (!sessionResult.ok) return sessionResult;
+
+  return { ok: true, retryAfterSeconds: 0 };
+}
+
 export function checkRateLimit(input: { ip?: string | null; sessionId?: string | null }): RateLimitResult {
   const now = Date.now();
   const ip = input.ip ? input.ip.trim() : "";

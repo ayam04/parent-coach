@@ -3,7 +3,7 @@ import { getDb } from "@/lib/mongodb";
 import { generateCoachReply } from "@/lib/coach";
 import { renderReplyText } from "@/lib/types";
 import type { ChatMessage, ConversationState } from "@/lib/types";
-import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { checkRateLimit, checkReadRateLimit, getClientIp } from "@/lib/rate-limit";
 import crypto from "crypto";
 
 /** How many turns of history we hand to the model. */
@@ -36,6 +36,21 @@ function publicReply(reply: any) {
   return rest;
 }
 
+/**
+ * Model output kept only for debugging is never persisted and never returned:
+ * it can echo prompt fragments and is not part of the client contract.
+ */
+function storableReply(reply: any) {
+  return reply ? publicReply(reply) : reply;
+}
+
+/** Legacy documents may still contain a raw field, so scrub on read as well. */
+function scrubMessages(messages: ChatMessage[]): ChatMessage[] {
+  return messages.map((message) =>
+    message?.reply ? { ...message, reply: storableReply(message.reply) } : message
+  );
+}
+
 function truncate(value: string, maxLength: number): string {
   return value.length > maxLength ? value.slice(0, maxLength) : value;
 }
@@ -65,7 +80,12 @@ function boundedState(state: ConversationState | undefined): ConversationState {
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
+    }
     const message = typeof body?.message === "string" ? body.message.trim() : "";
     const rawSessionId = typeof body?.sessionId === "string" ? body.sessionId.trim() : "";
     // Invalid or absent ids are replaced with a fresh one instead of trusted.
@@ -117,7 +137,7 @@ export async function POST(req: NextRequest) {
     const assistantMsg: ChatMessage = {
       role: "assistant",
       content: truncate(renderReplyText(reply), MAX_STORED_CONTENT),
-      reply,
+      reply: storableReply(reply),
       createdAt: new Date().toISOString(),
       meta: { mode: reply.mode, escalated: reply.escalated },
     };
@@ -140,9 +160,9 @@ export async function POST(req: NextRequest) {
     );
 
     const updated = await col.findOne({ sessionId });
-    const messages: ChatMessage[] = Array.isArray(updated?.messages)
-      ? (updated!.messages as ChatMessage[])
-      : [userMsg, assistantMsg];
+    const messages: ChatMessage[] = scrubMessages(
+      Array.isArray(updated?.messages) ? (updated!.messages as ChatMessage[]) : [userMsg, assistantMsg]
+    );
 
     return NextResponse.json({
       sessionId,
@@ -166,12 +186,20 @@ export async function GET(req: NextRequest) {
     }
     const sessionId = rawSessionId.toLowerCase();
 
+    const limit = checkReadRateLimit({ ip: getClientIp(req), sessionId });
+    if (!limit.ok) {
+      return NextResponse.json(
+        { error: "Too many requests. Please wait a moment and try again." },
+        { status: 429, headers: { "Retry-After": String(limit.retryAfterSeconds) } }
+      );
+    }
+
     const db = await getDb();
     const col = db.collection("conversations");
     const convo = await col.findOne({ sessionId });
     return NextResponse.json({
       sessionId,
-      messages: Array.isArray(convo?.messages) ? convo!.messages : [],
+      messages: scrubMessages(Array.isArray(convo?.messages) ? (convo!.messages as ChatMessage[]) : []),
       state: convo?.state || {},
     });
   } catch (e) {
