@@ -43,3 +43,8 @@ next-env.d.ts
 .env.local
 
 .vercel
+# local scratch / test artifacts (never shipped)
+_preview/
+_preview_src.tsx
+_browser_test.py
+browser-*.png

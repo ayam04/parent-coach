@@ -16,7 +16,7 @@ const HISTORY_LIMIT = 20;
 /** Recent turns given to the routing classifier so follow-ups differ from small talk. */
 const CLASSIFIER_HISTORY_LIMIT = 8;
 /** The classifier is a cheap routing call and must answer fast. */
-const CLASSIFIER_TIMEOUT_MS = 6000;
+const CLASSIFIER_TIMEOUT_MS = 9000;
 /** Generation gets a longer budget. */
 const GENERATION_TIMEOUT_MS = 20000;
 
@@ -245,7 +245,9 @@ TASK: reply conversationally to this turn.
 OUTPUT: JSON only, no fences: {"mode":"chat","text":"<reply>","follow_up":{"question":"...","suggested_time":"..."}}
 RULES:
 - "text": 1-3 short sentences of plain prose, warm and human, like a caring friend texting. No headings, numbered lists, "Plan:"/"Concern:" labels or markdown.
+- Read the LATEST message on its own terms. If it is only a thanks, acknowledgement or sign-off ("thanks", "ok", "got it", "bye"), reply with ONE short warm sentence that refers to the concern you just discussed, plus at most a tiny practical nudge. Do not ask a fresh question and do not mirror feelings the parent did not express.
 - If the parent says a strategy did not work, acknowledge it and gently offer ONE fresh small idea.
+- Never open with generic filler such as "That sounds like a lot to carry" or "I am here with you" unless the parent actually expressed distress. Be specific to their situation.
 - A brief natural question inside "text" is fine; include "follow_up" only when a check-in genuinely helps. Do not add a safety disclaimer unless the situation truly calls for one.`;
 
 const PLAN_PROMPT = CORE_RULES + `
@@ -327,7 +329,7 @@ function fallbackFor(mode: ReplyMode): CoachReply {
   }
   return {
     mode: "chat",
-    text: "I'm here with you. That sounds like a lot to carry, and it makes sense that you are thinking about it. Tell me a little more when you have a moment - I'm listening.",
+    text: "I'm here - tell me a little more about what happened and we can think it through together.",
     escalated: false,
   };
 }
@@ -389,10 +391,16 @@ function mergeStrategies(previous?: string[], incoming?: string[]): string[] {
 function mergeState(
   previous: ConversationState | undefined,
   classification: ClassifierOutput | null,
-  reply: CoachReply
+  reply: CoachReply,
+  latestUserText?: string
 ): ConversationState {
   const next: ConversationState = {};
-  const topic = clean(classification?.topic, 80) || clean(previous?.topic, 80);
+  // Keep continuity even when the classifier is unavailable: fall back to the
+  // parent's own words before giving up on having a topic at all.
+  const topic =
+    clean(classification?.topic, 80) ||
+    clean(previous?.topic, 80) ||
+    clean(latestUserText, 80);
   if (topic) next.topic = topic;
   const childAge = clean(classification?.child_age, 20) || clean(previous?.child_age, 20);
   if (childAge) next.child_age = childAge;
@@ -465,7 +473,7 @@ async function classify(
         { role: "user", content: userContent },
       ],
       temperature: 0,
-      max_tokens: 300,
+      max_tokens: 700,
     },
     CLASSIFIER_TIMEOUT_MS,
     sessionId
@@ -553,12 +561,12 @@ export async function generateCoachReply(
       reply.mode = "safety";
       reply.escalated = true;
     }
-    return { reply, state: mergeState(previousState, classification, reply) };
+    return { reply, state: mergeState(previousState, classification, reply, latestUserText) };
   } catch (error) {
     // Contract: never throw. Degrade to a deterministic reply for a safe mode.
     const fallbackMode: ReplyMode = heuristicCrisis(latestUserText) ? "safety" : "chat";
     const reply = fallbackFor(fallbackMode);
     reply.raw = "fatal: " + (error instanceof Error ? error.message : String(error));
-    return { reply, state: mergeState(previousState, null, reply) };
+    return { reply, state: mergeState(previousState, null, reply, latestUserText) };
   }
 }
