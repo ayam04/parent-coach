@@ -1,4 +1,4 @@
-﻿export type CoachReply = {
+export type CoachReply = {
   concern_summary: string;
   safety_note: string;
   plan: string[];
@@ -31,7 +31,7 @@ Keep each field concise. "plan" must have 2 to 4 items.`;
 function extractJson(text: string): any {
   const trimmed = text.trim();
   try { return JSON.parse(trimmed); } catch {}
-  const fence = trimmed.match(/```(?:json)?s*([sS]*?)```/i);
+  const fence = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
   if (fence) {
     try { return JSON.parse(fence[1].trim()); } catch {}
   }
@@ -47,8 +47,8 @@ export function heuristicCrisis(text: string): boolean {
   const t = text.toLowerCase();
   const patterns = [
     /suicid/, /kill (my|him|her|them)?self/, /end (my|his|her) life/, /self[- ]?harm/,
-    /hurt (my|him|her|them)?self/, /want to die/, /don't want to live/, /don'?t want to live/, /mar jana/, /khudkushi/,
-    /abuse/, /abusing/, /molest/, /rape/, /sexual abuse/, /beating/, /beaten/, /hit(ting)? (my )?(child|kid|son|daughter|baby)/,
+    /hurt (my|him|her|them)?self/, /want to die/, /don'?t want to live/, /mar jana/, /khudkushi/,
+    /\babuse\b/, /abusing/, /molest/, /rape/, /sexual abuse/, /beating/, /beaten/, /hit(ting)? (my )?(child|kid|son|daughter|baby)/,
     /choking/, /not breathing/, /unconscious/, /poison/, /overdose/, /bleeding heavily/, /emergency/, /immediate danger/,
     /threaten.*kill/, /gun/, /knife/, /maar raha/, /maar rahi/, /zyadti/, /jan se maar/,
   ];
@@ -60,7 +60,7 @@ export async function generateCoachReply(
   latestUserText: string
 ): Promise<CoachReply> {
   const apiKey = process.env.OPENCODE_API_KEY || process.env.OPENCODE_GO_API_KEY;
-  const baseUrl = (process.env.OPENCODE_BASE_URL || "https://opencode.ai/zen/go/v1").replace(//$/, "");
+  const baseUrl = (process.env.OPENCODE_BASE_URL || "https://opencode.ai/zen/go/v1").replace(/\/$/, "");
   const model = process.env.OPENCODE_MODEL || "glm-5.1";
 
   const crisis = heuristicCrisis(latestUserText);
@@ -98,9 +98,7 @@ export async function generateCoachReply(
   }
 
   const history = messages.slice(-10).map((m) => ({ role: m.role, content: m.content }));
-  const system = SYSTEM_PROMPT + (crisis ? "
-
-IMPORTANT: The latest message may indicate a crisis/emergency/abuse/self-harm. You MUST set escalated=true and provide a clear safety_note urging immediate local emergency/crisis/child protection help." : "");
+  const system = SYSTEM_PROMPT + (crisis ? "\n\nIMPORTANT: The latest message may indicate a crisis/emergency/abuse/self-harm. You MUST set escalated=true and provide a clear safety_note urging immediate local emergency/crisis/child protection help." : "");
   const body = {
     model,
     messages: [
