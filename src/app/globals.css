@@ -1,20 +1,22 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #f4efe7;
-  --bg-soft: #fbf8f2;
-  --surface: #fffdf9;
-  --ink: #1f2a24;
-  --muted: #5c6b63;
-  --line: #e3ddd1;
-  --accent: #2f6f5e;
-  --accent-strong: #245447;
-  --accent-soft: #dfece6;
-  --warn: #8a3b2f;
-  --warn-bg: #fdeeea;
-  --warn-line: #efc7be;
-  --chip: #efe8dc;
-  --shadow: 0 20px 50px rgba(40, 52, 44, 0.08);
+  --bg: #f3ede3;
+  --bg-deep: #e9e1d3;
+  --surface: rgba(255, 252, 246, 0.82);
+  --surface-solid: #fffdf8;
+  --ink: #1b2420;
+  --muted: #5f6b64;
+  --line: rgba(58, 73, 64, 0.14);
+  --accent: #1f6b57;
+  --accent-2: #d97a4a;
+  --accent-strong: #174f40;
+  --accent-soft: #e4f0ea;
+  --warn: #9a3528;
+  --warn-bg: #fff1ed;
+  --warn-line: #efc2b8;
+  --shadow: 0 30px 80px rgba(34, 45, 39, 0.12);
+  --shadow-soft: 0 10px 30px rgba(34, 45, 39, 0.08);
 }
 
 @theme inline {
@@ -27,32 +29,51 @@
 body {
   font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
   background:
-    radial-gradient(1200px 500px at 10% -10%, #e7efe8 0%, transparent 60%),
-    radial-gradient(900px 400px at 100% 0%, #efe6d8 0%, transparent 55%),
-    var(--bg);
+    radial-gradient(900px 420px at 0% -5%, rgba(31,107,87,0.14), transparent 60%),
+    radial-gradient(700px 360px at 100% 0%, rgba(217,122,74,0.16), transparent 55%),
+    radial-gradient(600px 300px at 50% 100%, rgba(31,107,87,0.08), transparent 60%),
+    linear-gradient(180deg, #f7f2e9 0%, var(--bg) 100%);
 }
 
-h1, h2, h3, .display {
-  font-family: var(--font-display), Georgia, serif;
-}
+h1, h2, h3, .display { font-family: var(--font-display), Georgia, serif; }
 
-::selection { background: #d8e7df; }
+::selection { background: #d6e8df; }
 
-.grain::before {
+.shell::before {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
-  opacity: 0.04;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+  background-image:
+    linear-gradient(rgba(255,255,255,0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.18) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(circle at center, black 35%, transparent 85%);
+  opacity: 0.25;
   z-index: 0;
 }
 
+.card-glass {
+  background: var(--surface);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
 @keyframes rise {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.animate-rise { animation: rise .35s ease-out; }
+@keyframes float {
+  0%,100% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+}
+.animate-rise { animation: rise .4s ease-out; }
+.animate-float { animation: float 6s ease-in-out infinite; }
 
 .scroll-smoothbar::-webkit-scrollbar { width: 10px; }
-.scroll-smoothbar::-webkit-scrollbar-thumb { background: #d8d1c3; border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
+.scroll-smoothbar::-webkit-scrollbar-thumb { background: #d4cbbb; border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
+
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(31,107,87,0.22);
+}

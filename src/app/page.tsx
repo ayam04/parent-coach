@@ -165,28 +165,31 @@ export default function Home() {
   const hasMessages = messages.length > 0;
 
   return (
-    <div className="grain relative min-h-screen">
-      <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-6 sm:px-6 lg:px-8">
-        <header className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/70 border border-[var(--line)] px-3 py-1 text-xs font-medium text-[var(--muted)] shadow-sm mb-3">
-              <span className="h-2 w-2 rounded-full bg-[var(--accent)]"></span>
-              English & Urdu • Brief, structured support
+    <div className="shell relative min-h-screen overflow-hidden">
+      <div className="pointer-events-none absolute -top-24 -left-16 h-72 w-72 rounded-full bg-[radial-gradient(circle,rgba(31,107,87,0.18),transparent_70%)] blur-2xl" />
+      <div className="pointer-events-none absolute top-20 right-0 h-80 w-80 rounded-full bg-[radial-gradient(circle,rgba(217,122,74,0.18),transparent_70%)] blur-2xl" />
+      <div className="relative z-10 mx-auto flex min-h-screen max-w-6xl flex-col px-4 py-8 sm:px-6 lg:px-8">
+        <header className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/70 border border-[var(--line)] px-3 py-1.5 text-xs font-semibold tracking-wide text-[var(--muted)] shadow-sm mb-4">
+              <span className="h-2 w-2 rounded-full bg-[var(--accent)] animate-float"></span>
+              English & Urdu • Structured, safety-aware coaching
             </div>
-            <h1 className="display text-3xl sm:text-4xl font-semibold tracking-tight text-[var(--ink)]">Parent Coach</h1>
-            <p className="mt-1 max-w-2xl text-[15px] leading-relaxed text-[var(--muted)]">
-              Share a parenting concern and get a short, practical plan with a caring check-in. This is general support — not diagnosis, medical, or legal advice.
+            <h1 className="display text-4xl sm:text-5xl font-semibold tracking-tight text-[var(--ink)] leading-[1.05]">A calmer way to handle tough parenting moments.</h1>
+            <p className="mt-3 text-base sm:text-[17px] leading-relaxed text-[var(--muted)]">
+              Share a concern in English or Urdu and receive a brief summary, a clear safety note, 2–4 practical steps, and a caring follow-up check-in. This is general support — not diagnosis, medical, or legal advice.
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={newChat} className="rounded-full border border-[var(--line)] bg-white/80 px-4 py-2 text-sm font-semibold text-[var(--ink)] hover:bg-white transition shadow-sm">
+            <button onClick={newChat} className="focus-ring rounded-full border border-[var(--line)] bg-white/80 px-4 py-2.5 text-sm font-semibold text-[var(--ink)] hover:bg-white hover:shadow-sm transition">
               New conversation
             </button>
+            <div className="hidden sm:flex items-center rounded-full bg-[var(--accent-soft)] px-4 py-2 text-xs font-semibold text-[var(--accent-strong)] border border-emerald-900/10">No login • History saved on page</div>
           </div>
         </header>
 
         <main className="grid flex-1 grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
-          <section className="flex min-h-[70vh] flex-col rounded-3xl border border-[var(--line)] bg-[var(--surface)]/80 shadow-[var(--shadow)] backdrop-blur-sm overflow-hidden">
+          <section className="card-glass flex min-h-[72vh] flex-col rounded-[28px] border border-[var(--line)] shadow-[var(--shadow)] overflow-hidden">
             <div className="flex-1 overflow-y-auto px-4 py-5 sm:px-6 space-y-4 scroll-smoothbar">
               {!hasMessages && (
                 <div className="animate-rise">
@@ -229,7 +232,7 @@ export default function Home() {
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Type your concern in English or Urdu… (e.g. homework struggles, bedtime, screen time)"
                   rows={3}
-                  className="flex-1 resize-none rounded-2xl border border-[var(--line)] bg-[var(--bg-soft)] px-4 py-3 text-[15px] leading-relaxed text-[var(--ink)] placeholder:text-[#8a948d] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/30 focus:border-[var(--accent)]"
+                  className="focus-ring flex-1 resize-none rounded-2xl border border-[var(--line)] bg-white/80 px-4 py-3 text-[15px] leading-relaxed text-[var(--ink)] placeholder:text-[#8a948d] focus:border-[var(--accent)]"
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
@@ -240,7 +243,7 @@ export default function Home() {
                 <button
                   type="submit"
                   disabled={loading || !input.trim()}
-                  className="inline-flex h-12 items-center justify-center rounded-2xl bg-[var(--accent)] px-5 text-sm font-semibold text-white hover:bg-[var(--accent-strong)] disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm sm:w-auto"
+                  className="focus-ring inline-flex h-12 items-center justify-center rounded-2xl bg-[var(--accent)] px-6 text-sm font-semibold text-white hover:bg-[var(--accent-strong)] disabled:opacity-50 disabled:cursor-not-allowed transition shadow-sm sm:w-auto"
                 >
                   {loading ? "Sending…" : "Get support"}
                 </button>
@@ -252,7 +255,7 @@ export default function Home() {
           </section>
 
           <aside className="space-y-4">
-            <div className="rounded-3xl border border-[var(--line)] bg-white/70 p-5 shadow-sm">
+            <div className="card-glass rounded-[24px] border border-[var(--line)] p-5 shadow-[var(--shadow-soft)]">
               <h3 className="display text-lg font-semibold text-[var(--ink)] mb-2">What you’ll get</h3>
               <ul className="space-y-2 text-sm text-[var(--muted)]">
                 <li className="flex gap-2"><span className="text-[var(--accent)]">•</span><span>A short summary of your concern</span></li>
@@ -261,7 +264,7 @@ export default function Home() {
                 <li className="flex gap-2"><span className="text-[var(--accent)]">•</span><span>A caring follow-up check-in (question or time)</span></li>
               </ul>
             </div>
-            <div className="rounded-3xl border border-[var(--warn-line)] bg-[var(--warn-bg)] p-5 shadow-sm">
+            <div className="rounded-[24px] border border-[var(--warn-line)] bg-[var(--warn-bg)]/90 p-5 shadow-[var(--shadow-soft)]">
               <h3 className="display text-lg font-semibold text-[var(--warn)] mb-2">Safety & limits</h3>
               <p className="text-sm leading-relaxed text-[#6e332a] mb-2">
                 The coach does <strong>not</strong> diagnose and does <strong>not</strong> provide medical or legal instructions.
@@ -270,7 +273,7 @@ export default function Home() {
                 If you describe an emergency, abuse, or self-harm, it will clearly escalate and urge you to contact local emergency or crisis/child protection services immediately (e.g. 112/911).
               </p>
             </div>
-            <div className="rounded-3xl border border-[var(--line)] bg-white/70 p-5 shadow-sm">
+            <div className="card-glass rounded-[24px] border border-[var(--line)] p-5 shadow-[var(--shadow-soft)]">
               <h3 className="display text-lg font-semibold text-[var(--ink)] mb-2">Privacy note</h3>
               <p className="text-sm leading-relaxed text-[var(--muted)]">
                 Conversations are stored to show history on this page (no login). Avoid sharing names, addresses, or other sensitive personal details.

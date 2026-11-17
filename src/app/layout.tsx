@@ -1,23 +1,23 @@
 import type { Metadata } from "next";
-import { Fraunces, Nunito_Sans } from "next/font/google";
+import { Fraunces, Manrope } from "next/font/google";
 import "./globals.css";
 
 const display = Fraunces({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: ["500", "600", "700"],
 });
 
-const body = Nunito_Sans({
+const body = Manrope({
   variable: "--font-body",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "Parent Coach — Calm, practical support",
+  title: "Parent Coach | Calm, practical support",
   description:
-    "A brief, structured parenting coach that offers practical plans and caring check-ins in English or Urdu. Not a substitute for medical, legal, or emergency services.",
+    "Share a parenting concern in English or Urdu and receive a brief, structured, safety-aware plan with a caring check-in.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
