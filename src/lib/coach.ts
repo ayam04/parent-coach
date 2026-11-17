@@ -63,8 +63,8 @@ export async function generateCoachReply(
   sessionId?: string
 ): Promise<CoachReply> {
   const apiKey = process.env.OPENCODE_API_KEY || process.env.OPENCODE_GO_API_KEY;
-  const baseUrl = (process.env.OPENCODE_BASE_URL || "https://opencode.ai/zen/go/v1").replace(/\/$/, "");
-  const model = process.env.OPENCODE_MODEL || "glm-5.1";
+  const baseUrl = (process.env.OPENCODE_BASE_URL || "https://opencode.ai/inference/go/openai/v1").replace(/\/$/, "");
+  const model = process.env.OPENCODE_MODEL || "beam-free";
 
   const crisis = heuristicCrisis(latestUserText);
 

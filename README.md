@@ -21,8 +21,8 @@ A small Next.js app where a parent can type a concern in **English or Urdu** and
 - **Next.js (App Router) + TypeScript + Tailwind CSS**
 - **MongoDB** for conversation persistence
 - **OpenCode Go (OpenAI-compatible API)** for LLM responses
-  - default base URL: `https://opencode.ai/zen/go/v1`
-  - configurable model via `OPENCODE_MODEL` (use a fast model included in your OpenCode Go plan)
+  - default base URL: `https://opencode.ai/inference/go/openai/v1`
+  - configurable model via `OPENCODE_MODEL` (default `beam-free`, a fast free model available on OpenCode Go)
 
 ## Getting started
 
@@ -55,10 +55,10 @@ MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>/<db>?retryWrites=true&w=ma
 MONGODB_DB=parent_coach
 
 # OpenCode Go (OpenAI-compatible) API settings
-OPENCODE_BASE_URL=https://opencode.ai/zen/go/v1
+OPENCODE_BASE_URL=https://opencode.ai/inference/go/openai/v1
 OPENCODE_API_KEY=your_opencode_go_api_key
 # Model included in your OpenCode Go plan (fast/cheap recommended)
-OPENCODE_MODEL=glm-5.1
+OPENCODE_MODEL=beam-free
 ```
 
 > `.env.local` is gitignored and should never be committed.
@@ -85,7 +85,7 @@ npm start
 3. Add the following **Environment Variables** in the Vercel project settings:
    - `MONGODB_URI`
    - `MONGODB_DB` (e.g. `parent_coach`)
-   - `OPENCODE_BASE_URL` (e.g. `https://opencode.ai/zen/go/v1`)
+   - `OPENCODE_BASE_URL` (e.g. `https://opencode.ai/inference/go/openai/v1`)
    - `OPENCODE_API_KEY`
    - `OPENCODE_MODEL` (a model included in your OpenCode Go plan)
 4. Deploy. Vercel will build and host the Next.js app.
