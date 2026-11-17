@@ -1,4 +1,7 @@
 import { MongoClient, Db } from "mongodb";
+import type { ChatMessage, Conversation, ConversationState } from "./types";
+
+export type { ChatMessage, Conversation, ConversationState };
 
 const uri = process.env.MONGODB_URI;
 if (!uri) {
@@ -33,18 +36,3 @@ export async function getDb(): Promise<Db> {
   const dbName = process.env.MONGODB_DB || "parent_coach";
   return c.db(dbName);
 }
-
-export type ChatMessage = {
-  role: "user" | "assistant";
-  content: string;
-  createdAt: string;
-  meta?: Record<string, unknown>;
-};
-
-export type Conversation = {
-  _id?: string;
-  sessionId: string;
-  messages: ChatMessage[];
-  createdAt: string;
-  updatedAt: string;
-};
