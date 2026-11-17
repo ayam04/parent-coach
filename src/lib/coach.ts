@@ -395,12 +395,17 @@ function mergeState(
   latestUserText?: string
 ): ConversationState {
   const next: ConversationState = {};
-  // Keep continuity even when the classifier is unavailable: fall back to the
-  // parent's own words before giving up on having a topic at all.
+  // A greeting or one-word ack is not a topic; never let it overwrite the real one.
+  const isChatter = (value: string): boolean => {
+    const compact = value.toLowerCase().replace(/[^a-z0-9\s']/g, "").trim();
+    return compact.split(/\s+/).length < 2 || GREETING_RE.test(compact);
+  };
+  const classifiedTopic = clean(classification?.topic, 80);
+  const latestTopic = clean(latestUserText, 80);
   const topic =
-    clean(classification?.topic, 80) ||
+    (classifiedTopic && !isChatter(classifiedTopic) ? classifiedTopic : "") ||
     clean(previous?.topic, 80) ||
-    clean(latestUserText, 80);
+    (latestTopic && latestTopic.length > 12 && !isChatter(latestTopic) ? latestTopic : "");
   if (topic) next.topic = topic;
   const childAge = clean(classification?.child_age, 20) || clean(previous?.child_age, 20);
   if (childAge) next.child_age = childAge;
@@ -510,7 +515,7 @@ async function generateForMode(
   if (messages.length < 2) return { ...fallback, raw: "empty_input" };
 
   const result = await callModel(
-    { messages, temperature: mode === "safety" ? 0.25 : 0.6, max_tokens: 800 },
+    { messages, temperature: mode === "safety" ? 0.25 : 0.6, max_tokens: 2000 },
     GENERATION_TIMEOUT_MS,
     sessionId
   );
