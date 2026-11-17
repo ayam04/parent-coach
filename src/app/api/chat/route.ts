@@ -70,7 +70,6 @@ export async function POST(req: NextRequest) {
         follow_up: reply.follow_up,
         escalated: reply.escalated,
       },
-      debug: { raw: (reply as any).raw?.slice?.(0, 500) || null, model: process.env.OPENCODE_MODEL || "beam-free", base: (process.env.OPENCODE_BASE_URL || "").slice(0,60) },
       messages: updated?.messages || [userMsg, assistantMsg],
     });
   } catch (e: any) {
