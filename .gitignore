@@ -48,3 +48,6 @@ _preview/
 _preview_src.tsx
 _browser_test.py
 browser-*.png
+
+# keep the documented env template in the repo (no secrets inside)
+!.env.example
